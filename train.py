@@ -1,3 +1,5 @@
+# Import necessary libraries
+
 import argparse
 import torch
 from torchvision import datasets, transforms, models
@@ -5,11 +7,19 @@ from torch import nn, optim
 from collections import OrderedDict
 import os
 
+
+# Define a function to load data
+
 def load_data(data_dir):
+    
+    # Define directories for training, validation, and testing data
+    
     train_dir = os.path.join(data_dir, 'train')
     valid_dir = os.path.join(data_dir, 'valid')
     test_dir = os.path.join(data_dir, 'test')
 
+    # Define transformations for the data
+    
     data_transforms = {
         'train': transforms.Compose([
             transforms.RandomRotation(30),
@@ -32,6 +42,8 @@ def load_data(data_dir):
         ]),
     }
 
+    # Load datasets and create data loaders
+    
     image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x), transform=data_transforms[x])
                       for x in ['train', 'valid', 'test']}
     
@@ -39,6 +51,9 @@ def load_data(data_dir):
                    for x in ['train', 'valid', 'test']}
     
     return dataloaders['train'], dataloaders['valid'], image_datasets['train'].class_to_idx
+
+
+# Define a function to build the model architecture
 
 def build_model(arch, hidden_units):
     model = getattr(models, arch)(pretrained=True)
@@ -55,6 +70,9 @@ def build_model(arch, hidden_units):
     
     model.classifier = classifier
     return model
+
+
+# Function to train the model
 
 def train_model(model, criterion, optimizer, train_loader, valid_loader, epochs, device='cuda'):
     model.to(device)
@@ -98,6 +116,9 @@ def train_model(model, criterion, optimizer, train_loader, valid_loader, epochs,
               f"Validation loss: {valid_loss:.3f}.. "
               f"Validation accuracy: {accuracy:.3f}")
 
+
+# Function to save the checkpoint
+
 def save_checkpoint(model, train_data, save_dir, arch, epochs, hidden_units):
     checkpoint = {
         'arch': arch,
@@ -111,6 +132,9 @@ def save_checkpoint(model, train_data, save_dir, arch, epochs, hidden_units):
         os.makedirs(save_dir)
     
     torch.save(checkpoint, os.path.join(save_dir, 'checkpoint.pth'))
+
+
+# Main function
 
 def main():
     parser = argparse.ArgumentParser(description='Train a new network on a dataset and save the model as a checkpoint')

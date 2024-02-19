@@ -1,8 +1,13 @@
+# Import necessary libraries
+
 import argparse
 import torch
 import json
 from torchvision import models, transforms
 from PIL import Image
+
+
+# Function to load the control point
 
 def load_checkpoint(filepath):
     checkpoint = torch.load(filepath)
@@ -20,6 +25,9 @@ def load_checkpoint(filepath):
     model.class_to_idx = checkpoint['class_to_idx']
     return model
 
+
+# Function for image processing
+
 def process_image(image):
     img = Image.open(image)
     preprocess = transforms.Compose([
@@ -30,6 +38,9 @@ def process_image(image):
     ])
     img_tensor = preprocess(img)
     return img_tensor
+
+
+# Function to predict the image class
 
 def predict(image_path, model, topk=5, category_names=None, device='cpu'):
     model.eval()
@@ -52,6 +63,9 @@ def predict(image_path, model, topk=5, category_names=None, device='cpu'):
     else:
         top_flowers = top_classes
     return top_probabilities, top_classes, top_flowers
+
+
+# Main function
 
 def main():
     parser = argparse.ArgumentParser(description='Predict flower name from an image')
