@@ -3,6 +3,7 @@
 import argparse
 import torch
 import json
+import torch.nn as nn
 from torchvision import models, transforms
 from PIL import Image
 
@@ -10,18 +11,36 @@ from PIL import Image
 # Function to load the control point
 
 def load_checkpoint(filepath):
-    checkpoint = torch.load(filepath)
+    checkpoint = torch.load(filepath, map_location=torch.device('cpu'))
     arch = checkpoint['arch']
     hidden_units = checkpoint['hidden_units']
-    model = getattr(models, arch)(pretrained=True)
-    model.classifier = torch.nn.Sequential(
-        torch.nn.Linear(model.classifier[0].in_features, hidden_units),
-        torch.nn.ReLU(),
-        torch.nn.Dropout(0.5),
-        torch.nn.Linear(hidden_units, 102),
-        torch.nn.LogSoftmax(dim=1)
+    
+    # Load model architecture
+    
+    if arch.startswith('vgg'):
+        model = models.vgg16(pretrained=False)
+    elif arch.startswith('resnet'):
+        model = models.resnet50(pretrained=False)
+    elif arch.startswith('densenet'):
+        model = models.densenet121(pretrained=False)
+    else:
+        print("Architecture not recognized.")
+        return None
+    
+    # Creation of Classifier
+    
+    classifier = nn.Sequential(
+        nn.Linear(model.classifier[0].in_features, hidden_units),
+        nn.ReLU(),
+        nn.Dropout(0.5),
+        nn.Linear(hidden_units, 102),
+        nn.LogSoftmax(dim=1)
     )
-    model.load_state_dict(checkpoint['state_dict'])
+    model.classifier = classifier
+    
+    # Load weights of model from checkpoint
+    
+    model.load_state_dict(checkpoint['state_dict'], strict=False)
     model.class_to_idx = checkpoint['class_to_idx']
     return model
 
