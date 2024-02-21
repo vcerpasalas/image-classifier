@@ -126,6 +126,7 @@ def save_checkpoint(model, train_data, save_dir, arch, epochs, hidden_units):
         'hidden_units': hidden_units,
         'state_dict': model.state_dict(),
         'class_to_idx': train_data.class_to_idx,
+        'classifier': model.classifier 
     }
     
     if not os.path.exists(save_dir):
